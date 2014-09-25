@@ -6,6 +6,7 @@
  * Licensed under the MIT license.
  */
 
+
 'use strict';
 
 var fs = require('fs'),
@@ -14,17 +15,18 @@ var fs = require('fs'),
 
 module.exports = function(grunt) {
 
-  function md5(filepath, algorithm, encoding) {
+  function md5(filepath, algorithm, encoding, fileEncoding) {
     var hash = crypto.createHash(algorithm);
     grunt.log.verbose.write('Hashing ' + filepath + '...');
-    hash.update(grunt.file.read(filepath));
+    hash.update(grunt.file.read(filepath), fileEncoding);
     return hash.digest(encoding);
   }
 
   grunt.registerMultiTask('rev', 'Prefix static asset file names with a content hash', function() {
 
     var options = this.options({
-      structure: 'appended', //prefix, postfix
+      encoding: 'utf8',
+      structure: 'appended',
       algorithm: 'md5',
       length: 8
     });
@@ -32,7 +34,7 @@ module.exports = function(grunt) {
     this.files.forEach(function(filePair) {
       filePair.src.forEach(function(f) {
 
-        var hash = md5(f, options.algorithm, 'hex'),
+        var hash = md5(f, options.algorithm, 'hex', options.encoding),
           prefix = hash.slice(0, options.length),
           renamed = (options.structure == "appended") ? [path.basename(f,path.extname(f)), prefix].join('.') + path.extname(f) : [prefix, path.basename(f)].join('.'),
           outPath = path.resolve(path.dirname(f), renamed);
@@ -47,4 +49,3 @@ module.exports = function(grunt) {
   });
 
 };
-
